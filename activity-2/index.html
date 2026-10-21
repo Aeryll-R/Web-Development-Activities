@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caffeine, Sipped</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <nav>
+    <a class="brand" href="#home">Caffeine, <span>Sipped</span></a>
+    <div class="links">
+      <a href="#home" data-page="home">Home</a>
+      <a href="#cafes" data-page="cafes">All Cafes</a>
+      <a href="#top-picks" data-page="top-picks">Top Picks</a>
+      <a href="#about" data-page="about">About</a>
+    </div>
+  </nav>
+
+  <main id="page"></main>
+
+  <footer>designed &amp; built by Aeryll Reign Moncayo · 2026</footer>
+
+  <!-- Your cafes live here. Add or edit entries, keep the commas. -->
+  <script type="application/json" id="cafe-data">
+[
+ { "id":"cafe-1",   "name": "Cafe Fort",          "place": "Sta. Rosa City",           "drink": "Salted Caramel Latte",                    "rating": 4.7,    "Price": "₱79.00 - ₱180.00",    "visited": "Jun 2026",        "image": "assets/fort.jpg",        "colors": ["#e8c9a0", "#c08552"],    "note": "The Salted Caramel Latte was delicious, and you can’t beat having a proper PC gaming setup right alongside your coffee spot. Great atmosphere for a late-night gaming session!" },
+ { "id":"cafe-2",   "name": "Twenty Third Cafe",  "place": "Makati City",              "drink":"Pistachio Mont Blanc",                     "rating": 4,      "Price": "₱150.00 - ₱300.00",   "visited":"Jun 2026",         "image":"assets/23.jpeg",       "colors": ["#c9a27a","#5c3b28"],     "note":"Old records and strong coffee." },
+ { "id":"cafe-3",   "name": "Kape sa Gilid",      "place": "Intramuros Manila",        "drink":"Iced Biscoff Latte",                       "rating": 4.5,    "Price": "₱99.00 - ₱149.00",    "visited":"May 2026",         "image":"assets/gilid.jpg",       "colors": ["#dfc9a3","#9c7a4d"],     "note":"Sat outside under the trees." },
+ { "id":"cafe-4",   "name": "Coffee Project",     "place": "Crosswinds Tagaytay",      "drink": "Iced Shaken Lemon Lychee & Black Tea",    "rating": 3.7,    "Price": "₱130.00 - ₱245.00",   "visited":"January 2026",     "image":"assets/CP.jpg",           "colors": ["#cfd8b0","#8a9a5b"],     "note":"Clean, bright, and peaceful." },
+ { "id":"cafe-5",   "name": "Dwena's Cafe",       "place": "San Antonio Sto. Tomas",   "drink":"Mocha Frappe",                             "rating": 3.5,    "Price": "₱120.00 - ₱200.00",   "visited":"Jul 2025",         "image":"assets/dwenas.jpg",       "colors": ["#e5b8a0","#a0522d"],     "note":"Great for hanging out with friends." },
+ { "id":"cafe-6",   "name": "Moonbucks Cafe",     "place": "Calamba City",             "drink": "White Chocolate Mocha",                   "rating": 4.5,    "Price": "₱100.00 - ₱260.00",   "visited": "February 2025",   "image": "assets/moonbucks.jpg",   "colors": ["#d9b38c", "#8b5e3c"],    "note": "Fast wifi and quiet corners." }
+]
+  </script>
+
+  <script>
+    const cafes = JSON.parse(document.getElementById('cafe-data').textContent);
+    const page = document.getElementById('page');
+
+    window.addEventListener('hashchange', showPage);
+    showPage();
+
+    // Decide which page to show based on the link (#home, #cafes, #cafe-1 ...)
+    function showPage() {
+      const id = location.hash.replace('#', '') || 'home';
+      let tab = id;
+
+      if (id === 'cafes') {
+        page.innerHTML = renderAllCafes();
+      } else if (id === 'top-picks') {
+        page.innerHTML = renderTopPicks();
+      } else if (id === 'about') {
+        page.innerHTML = renderAbout();
+      } else if (id.startsWith('cafe-')) {
+        tab = 'cafes';
+        page.innerHTML = renderDetail(id);
+      } else {
+        tab = 'home';
+        page.innerHTML = renderHome();
+      }
+
+      document.querySelectorAll('.links a').forEach(link => {
+        link.classList.toggle('on', link.dataset.page === tab);
+      });
+      window.scrollTo(0, 0);
+    }
+
+    function stars(count) {
+      return '★'.repeat(count) + '☆'.repeat(5 - count);
+    }
+
+    // One cafe card
+    function renderCard(cafe) {
+      return `
+        <a class="card" href="#${cafe.id}">
+          <div class="cover" style="background: linear-gradient(135deg, ${cafe.colors[0]}, ${cafe.colors[1]})">
+            <span class="badge">${cafe.Price}</span>
+            <img src="${cafe.image}" alt="${cafe.name}" onerror="this.remove()" />
+          </div>
+          <div class="info">
+            <h3 class="name">${cafe.name}</h3>
+            <p class="place">📍 ${cafe.place}</p>
+            <div class="row">
+              <span>${cafe.drink}</span>
+              <span class="stars">${stars(cafe.rating)}</span>
+            </div>
+            <p class="note">“${cafe.note}”</p>
+          </div>
+        </a>`;
+    }
+
+    // A grid made from a list of cafes
+    function renderGrid(list) {
+      return `<div class="grid">${list.map(renderCard).join('')}</div>`;
+    }
+
+    function renderHome() {
+      const total = cafes.length;
+      const average = (cafes.reduce((sum, cafe) => sum + cafe.rating, 0) / total).toFixed(1);
+      const fiveStars = cafes.filter(cafe => cafe.rating === 5).length;
+
+      return `
+        <section class="hero">
+          <div class="cup">☕</div>
+          <h1>Caffeine, <em>Sipped</em></h1>
+          <p class="lead">my little journal of every coffee shop I’ve visited, one cup at a time.</p>
+          <a class="btn" href="#cafes">Browse all cafes</a>
+          <a class="btn alt" href="#top-picks">See top picks</a>
+        </section>
+
+        <div class="stats">
+          <div class="stat"><b>${total}</b><span>cafes visited</span></div>
+          <div class="stat"><b>${average}</b><span>average rating</span></div>
+          <div class="stat"><b>${fiveStars}</b><span>five-star spots</span></div>
+        </div>
+
+        <div class="head">
+          <h2>Latest visits</h2>
+          <a class="back" href="#cafes">View all →</a>
+        </div>
+        ${renderGrid(cafes.slice(0, 3, 4))}`;
+    }
+
+    function renderAllCafes() {
+      return `
+        <h2>All cafes</h2>
+        <p class="lead">Every spot I’ve sipped at. Tap a card to see more.</p>
+        ${renderGrid(cafes)}`;
+    }
+
+    function renderTopPicks() {
+      const topCafes = cafes.filter(cafe => cafe.rating === 5);
+      return `
+        <h2>Top picks</h2>
+        <p class="lead">My five-star favorites.</p>
+        ${renderGrid(topCafes)}`;
+    }
+
+    function renderAbout() {
+      return `
+        <section class="about">
+          <h2>My Love Affair with Cafes</h2>
+          <p>There is something quiet and magic about a warm cafe on an unassuming morning. It isn't just about the caffeine—though a perfectly pulled shot of espresso certainly helps—it’s about the atmosphere. Cafes exist in that rare, peaceful space between home and the rest of the world: a place where time slows down just enough for you to breathe, think, or simply watch life unfold around you.</p>
+          <p>Welcome to my little corner of the internet. This is where I keep track of every coffee shop I visit, what I ordered, and how it felt to sit there for an hour with a good drink.</p>        
+          </section>
+
+        <div class="rules">
+          <h2>My cafe rules</h2>
+          <div class="grid">
+            <div class="stat rule"><div class="emoji">🪑</div><b>Comfy seats win</b><span>I will stay longer if the chair is good.</span></div>
+            <div class="stat rule"><div class="emoji">🔌</div><b>Outlets matter</b><span>A laptop at 5% is a sad laptop.</span></div>
+            <div class="stat rule"><div class="emoji">🎶</div><b>Good playlist</b><span>Soft music makes any drink taste better.</span></div>
+          </div>
+        </div>`;
+    }
+
+    function renderDetail(id) {
+      const index = cafes.findIndex(cafe => cafe.id === id);
+      if (index === -1) return renderHome();
+
+      const cafe = cafes[index];
+      const previous = cafes[(index + cafes.length - 1) % cafes.length];
+      const next = cafes[(index + 1) % cafes.length];
+
+      return `
+        <a class="back" href="#cafes">← Back to all cafes</a>
+
+        <div class="detail">
+          <div class="cover big" style="background: linear-gradient(135deg, ${cafe.colors[0]}, ${cafe.colors[1]})">
+            ${cafe.emoji}
+            <img src="${cafe.image}" alt="${cafe.name}" onerror="this.remove()" />
+          </div>
+
+          <div>
+            <h2>${cafe.name}</h2>
+            <p class="place">📍 ${cafe.place}</p>
+            <div class="facts">
+              <div class="row"><span>Ordered</span><b>${cafe.drink}</b></div>
+              <div class="row"><span>Rating</span><b class="stars">${stars(cafe.rating)}</b></div>
+              <div class="row"><span>Price</span><b>${cafe.Price}</b></div>
+              <div class="row"><span>Visited</span><b>${cafe.visited}</b></div>
+            </div>
+            <p class="note">“${cafe.note}”</p>
+          </div>
+        </div>
+
+        <div class="pager">
+          <a class="btn alt" href="#${previous.id}">← ${previous.name}</a>
+          <a class="btn alt" href="#${next.id}">${next.name} →</a>
+        </div>`;
+    }
+  </script>
+</body>
+
+</html>
