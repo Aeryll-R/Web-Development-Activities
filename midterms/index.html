@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KPOP · The Sparkle of Future</title>
+  <title>Planet Pop</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600&display=swap"
@@ -19,7 +19,7 @@
 
     <section class="hero" id="hero">
       <div class="orb"></div>
-      <h1 data-t="EXO">KPOP</h1>
+      <h1 data-t="EXO">GALAXY</h1>
       <div class="slogan">THE SPARKLE OF FUTURE</div>
     </section>
 
@@ -53,7 +53,7 @@
       (function loop() { x.clearRect(0, 0, W, H); for (const s of S) { s.y -= s.v; s.t += .03; if (s.y < 0) { s.y = H; s.x = Math.random() * W; } x.globalAlpha = .4 + .6 * Math.abs(Math.sin(s.t)); x.fillStyle = "#cfd8ff"; x.beginPath(); x.arc(s.x, s.y, s.r, 0, 7); x.fill(); } requestAnimationFrame(loop); })();
     })();
 
-    const OTHERS = ["BTS", "Blackpink", "NewJeans", "Twice_(group)", "Aespa", "Ive_(group)", "Stray_Kids", "Seventeen_(South_Korean_band)", "Le_Sserafim", "Itzy", "Red_Velvet_(group)", "Tomorrow_X_Together", "Enhypen", "Nct_127", "Shinee", "Super_Junior", "Girls%27_Generation"];
+    const OTHERS = ["BTS", "Blackpink", "NewJeans", "Twice_(group)", "Aespa", "Ive_(group)", "Stray_Kids", "Seventeen_(South_Korean_band)", "Le Sserafim", "Itzy", "Red Velvet", "Tomorrow_X_Together", "Enhypen", "Nct_127", "Shinee", "Super_Junior", "Girls%27_Generation"];
     const EXO_TITLE = "Exo_(band)";
 
     const POWERS = [
@@ -128,12 +128,12 @@
     };
     async function openGroup(g, isExo) {
       current = g.title;
-      $("hero").hidden = true;                
-      $("home").hidden = true;                 
-      $("groupView").hidden = false;           
-      $("gName").textContent = g.name.toUpperCase();   
+      $("hero").hidden = true;
+      $("home").hidden = true;
+      $("groupView").hidden = false;
+      $("gName").textContent = g.name.toUpperCase();
       $("about").innerHTML = esc(g.extract) + (g.page ? ` <a href="${esc(g.page)}" target="_blank" rel="noopener">Wikipedia ↗</a>` : "");
-      window.scrollTo({ top: 0 });                
+      window.scrollTo({ top: 0 });
       const box = $("members");
       box.innerHTML = '<p class="msg">LOADING TRANSMISSION…</p>';
       $("pager").innerHTML = "";
@@ -166,15 +166,33 @@
     $("modal").onclick = e => { if (e.target.id === "modal") $("modal").classList.remove("on"); };
     addEventListener("keydown", e => { if (e.key === "Escape") $("modal").classList.remove("on"); });
 
+    addEventListener("keydown", e => { if (e.key === "Escape") $("modal").classList.remove("on"); });   // unchanged
+
+    // ◀ everything below is new
+    function showHome() {
+      current = null;
+      $("groupView").hidden = true;
+      $("hero").hidden = false;
+      $("home").hidden = false;
+      st.textContent = "";
+    }
+    $("back").onclick = showHome;
+
     (async () => {
-      st.textContent = "GET · en.wikipedia.org/api/rest_v1/page/summary/Exo_(band)";
-      let exo = null;
-      try { exo = await getGroup(EXO_TITLE); } catch (e) { $("about").textContent = ""; $("members").innerHTML = '<p class="msg err">COULD NOT REACH THE APIS. OPEN THIS FILE IN A NORMAL BROWSER WITH INTERNET.</p>'; return; }
+      st.textContent = "GET · en.wikipedia.org/api/rest_v1/page/summary";
       const gal = $("galaxy");
-      const exoPill = document.createElement("button"); exoPill.className = "pill on"; exoPill.dataset.t = EXO_TITLE; exoPill.textContent = "EXO"; exoPill.onclick = () => openGroup(exo, true); gal.appendChild(exoPill);
-      openGroup(exo, true);
-      const res = await Promise.allSettled(OTHERS.map(getGroup));
-      res.filter(r => r.status === "fulfilled").forEach(r => { const g = r.value, p = document.createElement("button"); p.className = "pill"; p.dataset.t = g.title; p.textContent = g.name.toUpperCase(); p.onclick = () => openGroup(g, false); gal.appendChild(p); });
+      const titles = [EXO_TITLE, ...OTHERS];
+      const res = await Promise.allSettled(titles.map(getGroup));
+      gal.innerHTML = "";
+      res.filter(r => r.status === "fulfilled").forEach(r => {
+        const g = r.value, p = document.createElement("button");
+        p.className = "pill";
+        p.textContent = g.title === EXO_TITLE ? "EXO" : g.name.toUpperCase();
+        p.onclick = () => openGroup(g, g.title === EXO_TITLE);
+        gal.appendChild(p);
+      });
+      if (!gal.children.length) gal.innerHTML = '<p class="msg err">COULD NOT REACH THE APIS. OPEN THIS FILE IN A NORMAL BROWSER WITH INTERNET.</p>';
+      st.textContent = gal.children.length + " groups loaded · Wikipedia";
     })();
   </script>
 </body>
